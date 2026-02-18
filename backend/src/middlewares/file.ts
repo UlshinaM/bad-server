@@ -2,6 +2,7 @@ import { Request, Express } from 'express'
 import multer, { FileFilterCallback } from 'multer'
 import { join } from 'path'
 import md5 from 'md5'
+import sharp from 'sharp'
 
 type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback = (error: Error | null, filename: string) => void
@@ -42,16 +43,27 @@ const types = [
     'image/svg+xml',
 ]
 
-const fileFilter = (
+const fileFilter = async (
     _req: Request,
     file: Express.Multer.File,
     cb: FileFilterCallback
 ) => {
-    if (!types.includes(file.mimetype)) {
+    try {
+        if (!types.includes(file.mimetype)) {
+            return cb(null, false)
+        }
+
+        try {
+            await sharp(file.path).metadata()
+            return cb(null, true)
+        } catch (error) {
+            return cb(null, false)
+        }
+
+        // return cb(null, true)
+    } catch (error) {
         return cb(null, false)
     }
-
-    return cb(null, true)
 }
 
 export default multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 *1024 } })
