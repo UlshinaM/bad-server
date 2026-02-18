@@ -1,6 +1,6 @@
 import { Request, Express } from 'express'
 import multer, { FileFilterCallback } from 'multer'
-import { join } from 'path'
+import { join, extname } from 'path'
 import md5 from 'md5'
 import sharp from 'sharp'
 
@@ -30,7 +30,7 @@ const storage = multer.diskStorage({
         cb: FileNameCallback
     ) => {
         const hashFile = md5(file.originalname + Date.now());
-        const onlyFilename = file.originalname.split('.').pop()
+        const onlyFilename = extname(file.originalname).toLowerCase()
         cb(null, `${hashFile}.${onlyFilename}`)
     },
 })
@@ -54,7 +54,7 @@ const fileFilter = async (
         }
 
         try {
-            await sharp(file.path).metadata()
+            await sharp(file.buffer).metadata()
             return cb(null, true)
         } catch (error) {
             return cb(null, false)
