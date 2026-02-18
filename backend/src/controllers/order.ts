@@ -40,6 +40,9 @@ export const getOrders = async (
 
         if (status) {
             if (typeof status === 'object') {
+                if ('$expr' in status) {
+                    next(new BadRequestError('Некорректный запрос'))
+                }
                 Object.assign(filters, status)
             }
             if (typeof status === 'string') {
