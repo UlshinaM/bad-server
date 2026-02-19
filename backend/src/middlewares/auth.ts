@@ -30,6 +30,11 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         if (!user) {
             return next(new ForbiddenError('Нет доступа'))
         }
+
+        if (!user.roles.includes(Role.Admin)) {
+            return next(new ForbiddenError('Нет доступа'))
+        }
+
         res.locals.user = user
 
         return next()

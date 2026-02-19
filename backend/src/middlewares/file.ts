@@ -1,10 +1,14 @@
 import { Request, Express } from 'express'
 import multer, { FileFilterCallback } from 'multer'
 import { join } from 'path'
+import md5 from 'md5'
+// import { fileTypeFromBuffer } from 'file-type'
+
 
 type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback = (error: Error | null, filename: string) => void
 
+// const storage = multer.diskStorage({
 const storage = multer.diskStorage({
     destination: (
         _req: Request,
@@ -27,7 +31,9 @@ const storage = multer.diskStorage({
         file: Express.Multer.File,
         cb: FileNameCallback
     ) => {
-        cb(null, file.originalname)
+        const hashFile = md5(file.originalname + Date.now());
+        const onlyExtension = file.originalname.split('.').pop()
+        cb(null, `${hashFile}.${onlyExtension}`)
     },
 })
 
@@ -39,6 +45,26 @@ const types = [
     'image/svg+xml',
 ]
 
+/* const checkFileContent = async (mimeType: string, buffer: Buffer): Promise<boolean> => {
+    try {
+        const neededBuffer = new Uint8Array(buffer);
+        
+        const bufferImageType = await fileTypeFromBuffer(neededBuffer);
+
+        if (!bufferImageType) {
+            return false
+        }
+
+        if (bufferImageType.mime !== mimeType) {
+            return false
+        }
+
+        return true
+    } catch (error) {
+        return false
+    }
+}; */
+
 const fileFilter = (
     _req: Request,
     file: Express.Multer.File,
@@ -48,7 +74,16 @@ const fileFilter = (
         return cb(null, false)
     }
 
+    /* const isMimeTypeCorrect = await checkFileContent(file.mimetype, file.buffer);
+
+    if(!isMimeTypeCorrect) {
+        return cb(null, false)
+    } 
+    if (!file.buffer) {
+        return cb(null, false)
+    } */
+
     return cb(null, true)
 }
 
-export default multer({ storage, fileFilter })
+export default multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 *1024 } })

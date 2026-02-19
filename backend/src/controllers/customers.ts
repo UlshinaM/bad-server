@@ -13,6 +13,7 @@ export const getCustomers = async (
     next: NextFunction
 ) => {
     try {
+        const maxLimit = 9;
         const {
             page = 1,
             limit = 10,
@@ -28,6 +29,12 @@ export const getCustomers = async (
             orderCountTo,
             search,
         } = req.query
+
+        let fixedLimit = Number(limit);
+        if (Number.isNaN(fixedLimit) || fixedLimit <= 0) {
+            fixedLimit = 10;
+        }
+        fixedLimit = Math.min(fixedLimit, maxLimit);
 
         const filters: FilterQuery<Partial<IUser>> = {}
 
@@ -116,8 +123,8 @@ export const getCustomers = async (
 
         const options = {
             sort,
-            skip: (Number(page) - 1) * Number(limit),
-            limit: Number(limit),
+            skip: (Number(page) - 1) * fixedLimit,
+            limit: fixedLimit,
         }
 
         const users = await User.find(filters, null, options).populate([
@@ -137,7 +144,7 @@ export const getCustomers = async (
         ])
 
         const totalUsers = await User.countDocuments(filters)
-        const totalPages = Math.ceil(totalUsers / Number(limit))
+        const totalPages = Math.ceil(totalUsers / fixedLimit)
 
         res.status(200).json({
             customers: users,
@@ -145,7 +152,7 @@ export const getCustomers = async (
                 totalUsers,
                 totalPages,
                 currentPage: Number(page),
-                pageSize: Number(limit),
+                pageSize: fixedLimit,
             },
         })
     } catch (error) {
