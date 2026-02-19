@@ -2,6 +2,8 @@ import { Request, Express } from 'express'
 import multer, { FileFilterCallback } from 'multer'
 import { join } from 'path'
 import md5 from 'md5'
+import { fileTypeFromBuffer } from 'file-type'
+
 
 type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback = (error: Error | null, filename: string) => void
@@ -42,16 +44,33 @@ const types = [
     'image/svg+xml',
 ]
 
-const signatures: Record<string, string[]> = {
+/* const signatures: Record<string, string[]> = {
     'image/png': ['89504E47'],
     'image/jpg': ['FFD8FF'],
     'image/jpeg': ['FFD8FF'],
     'image/gif': ['47494638'],
     'image/svg+xml': ['3C3F3F3F'],
-}; 
+};  */
 
-const checkFileContent = (mimeType: string, buffer: Buffer): boolean => {
-    const imageSignatures = signatures[mimeType];
+const checkFileContent = async (mimeType: string, buffer: Buffer): Promise<boolean> => {
+    try {
+        const neededBuffer = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.length);
+        
+        const bufferImageType = await fileTypeFromBuffer(neededBuffer);
+
+        if (!bufferImageType) {
+            return false
+        }
+
+        if (bufferImageType.mime !== mimeType) {
+            return false
+        }
+
+        return true
+    } catch (error) {
+        return false
+    }
+    /* const imageSignatures = signatures[mimeType];
     console.log(imageSignatures);
 
     if (!imageSignatures) {
@@ -62,10 +81,10 @@ const checkFileContent = (mimeType: string, buffer: Buffer): boolean => {
     const hexImageBytes = buffer.subarray(0, maxCheckBytes).toString('hex').toUpperCase();
     console.log(hexImageBytes);
 
-    return imageSignatures.some((sign) => hexImageBytes.startsWith(sign))
+    return imageSignatures.some((sign) => hexImageBytes.startsWith(sign)) */
 };
 
-const fileFilter = (
+const fileFilter = async (
     _req: Request,
     file: Express.Multer.File,
     cb: FileFilterCallback
@@ -74,11 +93,17 @@ const fileFilter = (
         return cb(null, false)
     }
 
-    if(!checkFileContent(file.mimetype, file.buffer)) {
+    const isMimeTypeCorrect = await checkFileContent(file.mimetype, file.buffer);
+
+    if(!isMimeTypeCorrect) {
         return cb(null, false)
     }
 
     return cb(null, true)
 }
 
-export default multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 *1024 } })
+export default multer({
+    storage, 
+    fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {fileFilter(req, file, cb).catch((err) => cb(err))}, 
+    limits: { fileSize: 10 * 1024 *1024 }
+})
