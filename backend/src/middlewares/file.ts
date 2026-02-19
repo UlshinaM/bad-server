@@ -42,7 +42,7 @@ const types = [
     'image/svg+xml',
 ]
 
-/* const checkFileContent = (mimeType: string, buffer: Buffer): boolean => {
+const checkFileContent = (mimeType: string, buffer: Buffer): boolean => {
     if (buffer.length < 8) return false
 
     switch (mimeType) {
@@ -64,7 +64,7 @@ const types = [
         default:
             return false
     }
-}; */
+};
 
 const fileFilter = (
     _req: Request,
@@ -75,9 +75,9 @@ const fileFilter = (
         return cb(null, false)
     }
 
-/*    if(!checkFileContent(file.mimetype, file.buffer)) {
+    if(!checkFileContent(file.mimetype, file.buffer)) {
         return cb(null, false)
-    } */
+    }
 
     return cb(null, true)
 }
