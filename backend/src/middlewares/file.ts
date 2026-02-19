@@ -2,7 +2,7 @@ import { Request, Express } from 'express'
 import multer, { FileFilterCallback } from 'multer'
 import { join } from 'path'
 import md5 from 'md5'
-import { fileTypeFromBuffer } from 'file-type'
+// import { fileTypeFromBuffer } from 'file-type'
 
 
 type DestinationCallback = (error: Error | null, destination: string) => void
@@ -36,25 +36,17 @@ const storage = multer.diskStorage({
     },
 })
 
-const types = [
+/* const types = [
     'image/png',
     'image/jpg',
     'image/jpeg',
     'image/gif',
     'image/svg+xml',
-]
+] */
 
-/* const signatures: Record<string, string[]> = {
-    'image/png': ['89504E47'],
-    'image/jpg': ['FFD8FF'],
-    'image/jpeg': ['FFD8FF'],
-    'image/gif': ['47494638'],
-    'image/svg+xml': ['3C3F3F3F'],
-};  */
-
-const checkFileContent = async (mimeType: string, buffer: Buffer): Promise<boolean> => {
+/* const checkFileContent = async (mimeType: string, buffer: Buffer): Promise<boolean> => {
     try {
-        const neededBuffer = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.length);
+        const neededBuffer = new Uint8Array(buffer);
         
         const bufferImageType = await fileTypeFromBuffer(neededBuffer);
 
@@ -70,32 +62,23 @@ const checkFileContent = async (mimeType: string, buffer: Buffer): Promise<boole
     } catch (error) {
         return false
     }
-    /* const imageSignatures = signatures[mimeType];
-    console.log(imageSignatures);
-
-    if (!imageSignatures) {
-        return false
-    }
-
-    const maxCheckBytes = 100;
-    const hexImageBytes = buffer.subarray(0, maxCheckBytes).toString('hex').toUpperCase();
-    console.log(hexImageBytes);
-
-    return imageSignatures.some((sign) => hexImageBytes.startsWith(sign)) */
-};
+}; */
 
 const fileFilter = async (
     _req: Request,
     file: Express.Multer.File,
     cb: FileFilterCallback
 ) => {
-    if (!types.includes(file.mimetype)) {
+    /* if (!types.includes(file.mimetype)) {
         return cb(null, false)
-    }
+    } */
 
-    const isMimeTypeCorrect = await checkFileContent(file.mimetype, file.buffer);
+    /* const isMimeTypeCorrect = await checkFileContent(file.mimetype, file.buffer);
 
     if(!isMimeTypeCorrect) {
+        return cb(null, false)
+    } */
+    if (!file.buffer) {
         return cb(null, false)
     }
 
