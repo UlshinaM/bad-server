@@ -29,8 +29,8 @@ const storage = multer.diskStorage({
         cb: FileNameCallback
     ) => {
         const hashFile = md5(file.originalname + Date.now());
-        const onlyFilename = file.originalname.split('.')[0]
-        cb(null, `${hashFile}.${onlyFilename}`)
+        const onlyExtension = file.originalname.split('.').pop()
+        cb(null, `${hashFile}.${onlyExtension}`)
     },
 })
 
@@ -42,28 +42,27 @@ const types = [
     'image/svg+xml',
 ]
 
+const signatures: Record<string, string[]> = {
+    'image/png': ['89504E47'],
+    'image/jpg': ['FFD8FF'],
+    'image/jpeg': ['FFD8FF'],
+    'image/gif': ['47494638'],
+    'image/svg+xml': ['3C3F3F3F'],
+}; 
+
 const checkFileContent = (mimeType: string, buffer: Buffer): boolean => {
-    if (buffer.length < 8) return false
+    const imageSignatures = signatures[mimeType];
+    console.log(imageSignatures);
 
-    switch (mimeType) {
-        case 'image/png': 
-            return (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47 && buffer[4] === 0x0D && buffer[5] === 0x0A && buffer[6] === 0x1A && buffer[7] === 0x0A)
-        
-        case 'image/jpg':
-        case 'image/jpeg':
-            return (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF)
-
-        case 'image/gif':
-            return (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38 && (buffer[4] === 0x37 || buffer[4] === 0x39) && buffer[5] === 0x61)
-
-        case 'image/svg+xml': {
-            const str = buffer.toString('utf-8', 0, 5).toLowerCase();    
-            return (str.startsWith('<svg') || str.startsWith('<?xml'))
-        }   
-
-        default:
-            return false
+    if (!imageSignatures) {
+        return false
     }
+
+    const maxCheckBytes = 100;
+    const hexImageBytes = buffer.subarray(0, maxCheckBytes).toString('hex').toUpperCase();
+    console.log(hexImageBytes);
+
+    return imageSignatures.some((sign) => hexImageBytes.startsWith(sign))
 };
 
 const fileFilter = (
