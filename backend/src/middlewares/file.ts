@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
         cb: FileNameCallback
     ) => {
         const hashFile = md5(file.originalname + Date.now());
-        const onlyFilename = file.originalname.split('.').pop()
+        const onlyFilename = file.originalname.split('.')[0]
         cb(null, `${hashFile}.${onlyFilename}`)
     },
 })
@@ -42,7 +42,7 @@ const types = [
     'image/svg+xml',
 ]
 
-const checkFileContent = (mimeType: string, buffer: Buffer): boolean => {
+/* const checkFileContent = (mimeType: string, buffer: Buffer): boolean => {
     if (buffer.length < 8) return false
 
     switch (mimeType) {
@@ -64,7 +64,7 @@ const checkFileContent = (mimeType: string, buffer: Buffer): boolean => {
         default:
             return false
     }
-};
+}; */
 
 const fileFilter = (
     _req: Request,
@@ -75,13 +75,9 @@ const fileFilter = (
         return cb(null, false)
     }
 
-    if (file.size < (2 *1024)) {
+/*    if(!checkFileContent(file.mimetype, file.buffer)) {
         return cb(null, false)
-    }
-
-    if(!checkFileContent(file.mimetype, file.buffer)) {
-        return cb(null, false)
-    }
+    } */
 
     return cb(null, true)
 }

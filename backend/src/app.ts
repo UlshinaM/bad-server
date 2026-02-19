@@ -16,7 +16,7 @@ const app = express()
 app.use(cookieParser())
 
 app.use(cors())
-// const corsOptions = { origin: process.env.ORIGIN_ALLOW, credentials: true };
+// const corsOptions = { origin: ORIGIN_ALLOW, credentials: true };
 // app.use(cors(corsOptions));
 // app.use(express.static(path.join(__dirname, 'public')));
 
