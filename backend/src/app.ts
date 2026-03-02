@@ -6,19 +6,21 @@ import express, { json, urlencoded } from 'express'
 import mongoose from 'mongoose'
 import path from 'path'
 import { apiRateLimit } from './middlewares/rate-limit'
-import { DB_ADDRESS, ORIGIN_ALLOW } from './config'
+import { DB_ADDRESS/* , ORIGIN_ALLOW */ } from './config'
 import errorHandler from './middlewares/error-handler'
 import serveStatic from './middlewares/serverStatic'
 import routes from './routes'
 
 const { PORT = 3000 } = process.env
 const app = express()
+app.set('trust proxy', 1) // пусть приложение доверяет первому уровню прокси-сервера 
 
 app.use(cookieParser())
+app.use(apiRateLimit) // Ограничение числа запросов
 
-// app.use(cors())
-const corsOptions = { origin: ORIGIN_ALLOW, credentials: true };
-app.use(cors(corsOptions));
+app.use(cors())
+// const corsOptions = { origin: ORIGIN_ALLOW, credentials: true };
+// app.use(cors(corsOptions));
 // app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(serveStatic(path.join(__dirname, 'public')))
@@ -26,12 +28,10 @@ app.use(serveStatic(path.join(__dirname, 'public')))
 app.use(urlencoded({ extended: true }))
 app.use(json())
 
-app.options('*', cors(corsOptions))
+app.options('*', cors(/* corsOptions */))
 app.use(routes)
 app.use(errors())
 app.use(errorHandler)
-
-app.use(apiRateLimit)
 
 // eslint-disable-next-line no-console
 

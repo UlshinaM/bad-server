@@ -10,10 +10,12 @@ import NotFoundError from '../errors/not-found-error'
 import UnauthorizedError from '../errors/unauthorized-error'
 import User from '../models/user'
 
-const getCsrfToken = (_req: Request, res: Response, _next: NextFunction) => {
-    const csrfToken = crypto.randomBytes(32).toString('hex');
+const generateCsrfToken = () => crypto.randomBytes(32).toString('hex');
 
-    /* res.cookie('XCRF-TOKEN', csrfToken, {
+const getCsrfToken = (_req: Request, res: Response, _next: NextFunction) => {
+    const csrfToken = generateCsrfToken();
+
+    /* res.cookie('XSRF-TOKEN', csrfToken, {
         httpOnly: false,
         sameSite: 'lax',
         maxAge: 15 * 60 * 1000,
@@ -31,6 +33,11 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password } = req.body
         const user = await User.findUserByCredentials(email, password)
+
+        if (!user) {
+            throw new NotFoundError('Ошибка поиска пользователя')
+        }
+
         const accessToken = user.generateAccessToken()
         const refreshToken = await user.generateRefreshToken()
         res.cookie(
@@ -38,6 +45,15 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
             refreshToken,
             REFRESH_TOKEN.cookie.options
         )
+
+        res.cookie('csrfToken', generateCsrfToken(), {
+            httpOnly: false,
+            secure: REFRESH_TOKEN.cookie.options.secure,
+            sameSite: REFRESH_TOKEN.cookie.options.sameSite,
+            maxAge: REFRESH_TOKEN.cookie.options.maxAge,
+            path: REFRESH_TOKEN.cookie.options.path,
+        })
+
         return res.json({
             success: true,
             user,
