@@ -1,8 +1,8 @@
 import { errors } from 'celebrate'
 import cookieParser from 'cookie-parser'
+import express, { NextFunction, Request, Response , json, urlencoded } from 'express'
 import cors from 'cors'
 import 'dotenv/config'
-import express, { json, urlencoded } from 'express'
 import mongoose from 'mongoose'
 import path from 'path'
 import { apiRateLimit } from './middlewares/rate-limit'
@@ -30,6 +30,14 @@ app.use(json({ limit: '100kb' }))
 
 app.options('*', cors(corsOptions))
 app.use(routes)
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.method === 'GET' && req.path.endsWith('/customers') && res.statusCode === 200) {
+        res.setHeader('Access-Control-Allow-Origin', ORIGIN_ALLOW)
+    }
+    next()
+})
+
 app.use(errors())
 app.use(errorHandler)
 

@@ -1,6 +1,6 @@
 import rateLimit from "express-rate-limit";
 
-const limit = 30;
+const limit = 50;
 const msWindow = 60 * 1000;
 
 export const apiRateLimit = rateLimit({
