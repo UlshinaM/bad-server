@@ -13,11 +13,11 @@ import User from '../models/user'
 const getCsrfToken = (_req: Request, res: Response, _next: NextFunction) => {
     const csrfToken = crypto.randomBytes(32).toString('hex');
 
-    res.cookie('XCRF-TOKEN', csrfToken, {
+    /* res.cookie('XCRF-TOKEN', csrfToken, {
         httpOnly: false,
         sameSite: 'lax',
         maxAge: 15 * 60 * 1000,
-    })
+    }) */
 
     res.status(200).json({
         csrfToken,
