@@ -15,11 +15,11 @@ const generateCsrfToken = () => crypto.randomBytes(32).toString('hex');
 const getCsrfToken = (_req: Request, res: Response, _next: NextFunction) => {
     const csrfToken = generateCsrfToken();
 
-    /* res.cookie('XSRF-TOKEN', csrfToken, {
+    res.cookie('XSRF-TOKEN', csrfToken, {
         httpOnly: false,
         sameSite: 'lax',
         maxAge: 15 * 60 * 1000,
-    }) */
+    })
 
     res.status(200).json({
         csrfToken,
@@ -46,13 +46,13 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
             REFRESH_TOKEN.cookie.options
         )
 
-        res.cookie('csrfToken', generateCsrfToken(), {
+        /* res.cookie('csrfToken', generateCsrfToken(), {
             httpOnly: false,
             secure: REFRESH_TOKEN.cookie.options.secure,
             sameSite: REFRESH_TOKEN.cookie.options.sameSite,
             maxAge: REFRESH_TOKEN.cookie.options.maxAge,
             path: REFRESH_TOKEN.cookie.options.path,
-        })
+        }) */
 
         return res.json({
             success: true,
