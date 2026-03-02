@@ -15,7 +15,7 @@ const generateCsrfToken = () => crypto.randomBytes(32).toString('hex');
 const getCsrfToken = (_req: Request, res: Response, _next: NextFunction) => {
     const csrfToken = generateCsrfToken();
 
-    res.cookie('XSRF-TOKEN', csrfToken, {
+    res.cookie('_csrf', csrfToken, {
         httpOnly: false,
         sameSite: 'lax',
         maxAge: 15 * 60 * 1000,
